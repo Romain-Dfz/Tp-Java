@@ -36,7 +36,7 @@ public class Restaurant {
 
             while (!scanner.hasNextInt()) {
                 System.out.println("Veuillez entrer un chiffre valide.");
-                scanner.next(); // Nettoie le scanner
+                scanner.next();
             }
 
             int choice = scanner.nextInt();
