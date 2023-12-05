@@ -36,7 +36,7 @@ public class Restaurant {
 
             // Ajout de validation pour s'assurer que l'entrée est un entier
             while (!scanner.hasNextInt()) {
-                System.out.println("Veuillez entrer un nombre valide.");
+                System.out.println("Veuillez entrer un chiffre valide.");
                 scanner.next(); // Nettoie le scanner
             }
 
