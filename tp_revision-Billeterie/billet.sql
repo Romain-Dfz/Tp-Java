@@ -1,6 +1,0 @@
-CREATE TABLE lieu (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nom VARCHAR(255) NOT NULL,
-    adresse VARCHAR(255) NOT NULL,
-    capacite INT
-);
