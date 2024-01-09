@@ -1,69 +1,63 @@
 package org.example;
 
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 
-import java.util.Date;
 import java.util.List;
 
 public class ProduitDAO {
-    private static List<Produit> allProduits;
 
-    public static List<Produit> getAllProduits() {
-        return allProduits;
-    }
+    private static SessionFactory factory;
 
-    public static void setAllProduits(List<Produit> allProduits) {
-        ProduitDAO.allProduits = allProduits;
-    }
-
-    public static List<Produit> getProductsByPriceGreaterThan(double v) {
-        return null;
-    }
-
-    public static List<Produit> getProductsBetweenDates(Date startDate, Date endDate) {
-        return null;
-    }
-
-    public Produit getProduitById(int id) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.get(Produit.class, id);
+    public ProduitDAO() {
+        try {
+            factory = HibernateUtil.getSessionFactory();
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<Produit> getAllProduits() {
+        try (Session session = factory.openSession()) {
+            Query<Produit> query = session.createQuery("FROM Produit", Produit.class);
+            return query.list();
+        } catch (HibernateException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    public void deleteProduitById(int id) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction transaction = session.beginTransaction();
-            Produit produit = session.get(Produit.class, id);
-            if (produit != null) {
-                session.delete(produit);
-            }
-            transaction.commit();
-        } catch (Exception e) {
+    public List<Produit> getProduitsByPriceGreaterThan(double priceThreshold) {
+        try (Session session = factory.openSession()) {
+            Query<Produit> query = session.createQuery("FROM Produit P WHERE P.prix > :priceThreshold", Produit.class);
+            query.setParameter("priceThreshold", priceThreshold);
+            return query.list();
+        } catch (HibernateException e) {
             e.printStackTrace();
+            return null;
         }
     }
 
-    public void updateProduit(Produit produit) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction transaction = session.beginTransaction();
-            session.update(produit);
-            transaction.commit();
-        } catch (Exception e) {
+    public List<Produit> getProduitsBetweenDates(String startDate, String endDate) {
+        try (Session session = factory.openSession()) {
+            Query<Produit> query = session.createQuery("FROM Produit P WHERE P.dateAchat BETWEEN :startDate AND :endDate", Produit.class);
+            query.setParameter("startDate", startDate);
+            query.setParameter("endDate", endDate);
+            return query.list();
+        } catch (HibernateException e) {
             e.printStackTrace();
+            return null;
         }
     }
 
-    public static void createProduit(Produit produit) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction transaction = session.beginTransaction();
-            session.save(produit);
-            transaction.commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void shutdown() {
+    }
+
+    public List<Object[]> getProductsInfoByStockLessThan(int maxStockValue) {
+        List<Object[]> o = null;
+        return o;
     }
 }

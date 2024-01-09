@@ -7,48 +7,57 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Main {
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        HibernateUtil.getSessionFactory();
+        System.out.println("Entrez la date de début (format: yyyy-MM-dd HH:mm:ss): ");
+        String startDateString = scanner.nextLine();
+        String startDate = String.valueOf(parseDate(startDateString));
 
-        Produit produit = new Produit();
-        produit.setDateAchat(new Date());
-        produit.setMarque("Marque XYZ");
-        produit.setPrix(120.0);
-        produit.setReference("REF123");
-        produit.setStock(50);
+        System.out.println("Entrez la date de fin (format: yyyy-MM-dd HH:mm:ss): ");
+        String endDateString = scanner.nextLine();
+        Date endDate = parseDate(endDateString);
 
-        ProduitDAO.createProduit(produit);
-        System.out.println("Produit ajouté avec succès.");
-        System.out.println("\nListe de tous les produits :");
-        List<Produit> allProducts = ProduitDAO.getAllProduits();
-        displayProducts(allProducts);
+        ProduitDAO produitDAO = new ProduitDAO();
 
-        System.out.println("\nListe des produits dont le prix est supérieur à 100 euros :");
-        List<Produit> expensiveProducts = ProduitDAO.getProductsByPriceGreaterThan(100.0);
-        displayProducts(expensiveProducts);
+        List<Produit> produitsBetweenDates = produitDAO.getProduitsBetweenDates(startDate, String.valueOf(endDate));
+        displayProducts(produitsBetweenDates);
 
-        System.out.println("\nListe des produits achetés entre deux dates :");
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            System.out.print("Entrez la date de début (format YYYY-MM-DD) : ");
-            Date startDate = sdf.parse(scanner.nextLine());
-            System.out.print("Entrez la date de fin (format YYYY-MM-DD) : ");
-            Date endDate = sdf.parse(scanner.nextLine());
-
-            List<Produit> productsBetweenDates = ProduitDAO.getProductsBetweenDates(startDate, endDate);
-            displayProducts(productsBetweenDates);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        HibernateUtil.shutdown();
-        scanner.close();
+        System.out.println("Entrez la valeur de stock maximale : ");
+        int maxStockValue = scanner.nextInt();
+        List<Object[]> productsInfoByStock = produitDAO.getProductsInfoByStockLessThan(maxStockValue);
+        displayProductInfo(productsInfoByStock);
+        produitDAO.shutdown();
     }
     private static void displayProducts(List<Produit> produits) {
-        for (Produit produit : produits) {
-            System.out.println(produit);
+        System.out.println("Produits entre les dates :");
+        if (produits != null && !produits.isEmpty()) {
+            for (Produit produit : produits) {
+                System.out.println("Produit : " + produit);
+            }
+        } else {
+            System.out.println("Aucun produit trouvé.");
         }
-        System.out.println();
+    }
+
+    private static void displayProductInfo(List<Object[]> productsInfo) {
+        System.out.println("Informations des produits :");
+        if (productsInfo != null && !productsInfo.isEmpty()) {
+            for (Object[] productInfo : productsInfo) {
+                System.out.println("ID : " + productInfo[0] + ", Reference : " + productInfo[1]);
+            }
+        } else {
+            System.out.println("Aucune information de produit trouvée.");
+        }
+    }
+
+    private static Date parseDate(String dateString) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        try {
+            return dateFormat.parse(dateString);
+        } catch (ParseException e) {
+            throw new RuntimeException("Erreur lors de la conversion de la date.", e);
+        }
     }
 }
