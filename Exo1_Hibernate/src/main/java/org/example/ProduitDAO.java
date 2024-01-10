@@ -53,11 +53,85 @@ public class ProduitDAO {
         }
     }
 
+    public List<Object[]> getProductsInfoByStockLessThan(int stockThreshold) {
+        try (Session session = factory.openSession()) {
+            Query<Object[]> query = session.createQuery("SELECT P.id, P.reference FROM Produit P WHERE P.stock < :stockThreshold", Object[].class);
+            query.setParameter("stockThreshold", stockThreshold);
+            return query.list();
+        } catch (HibernateException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public int getStockValueByBrand(String brand) {
+        try (Session session = factory.openSession()) {
+            Query<Integer> query = session.createQuery("SELECT SUM(P.stock) FROM Produit P WHERE P.marque = :brand", Integer.class);
+            query.setParameter("brand", brand);
+            return query.uniqueResult();
+        } catch (HibernateException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    public double calculateAveragePrice() {
+        try (Session session = factory.openSession()) {
+            Query<Double> query = session.createQuery("SELECT AVG(P.prix) FROM Produit P", Double.class);
+            return query.uniqueResult();
+        } catch (HibernateException e) {
+            e.printStackTrace();
+            return -1.0;
+        }
+    }
+
+    public List<Produit> getProductsByBrand(String brand) {
+        try (Session session = factory.openSession()) {
+            Query<Produit> query = session.createQuery("FROM Produit P WHERE P.marque = :brand", Produit.class);
+            query.setParameter("brand", brand);
+            return query.list();
+        } catch (HibernateException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public void deleteProductsByBrand(String brand) {
+        try (Session session = factory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            Query<?> query = session.createQuery("DELETE FROM Produit P WHERE P.marque = :brand");
+            query.setParameter("brand", brand);
+            query.executeUpdate();
+            tx.commit();
+        } catch (HibernateException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void shutdown() {
     }
 
-    public List<Object[]> getProductsInfoByStockLessThan(int maxStockValue) {
-        List<Object[]> o = null;
-        return o;
+    public void addImageToProduit(int produitId, Image image) {
+        try (Session session = factory.openSession()) {
+            Produit produit = session.get(Produit.class, produitId);
+            produit.getImages().add(image);
+            Transaction tx = session.beginTransaction();
+            session.saveOrUpdate(produit);
+            tx.commit();
+        } catch (HibernateException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addCommentaireToProduit(int produitId, Commentaire commentaire) {
+        try (Session session = factory.openSession()) {
+            Produit produit = session.get(Produit.class, produitId);
+            produit.getCommentaires().add(commentaire);
+            Transaction tx = session.beginTransaction();
+            session.saveOrUpdate(produit);
+            tx.commit();
+        } catch (HibernateException e) {
+            e.printStackTrace();
+        }
     }
 }
